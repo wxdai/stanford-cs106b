@@ -22,12 +22,7 @@ bool printGridGUI(Grid<char>& matrix, LifeGUI& gui) {
     int n_rows = matrix.numRows();
     for (int i = 0; i < n_rows; i++) {
         for (int j = 0; j < n_cols; j++) {
-            bool alive;
-            if (matrix[i][j] == 'X') {
-                alive = true;
-            } else {
-                alive = false;
-            }
+            bool alive = (matrix[i][j] == 'X');
             gui.drawCell(i, j, alive);
         }
     }
