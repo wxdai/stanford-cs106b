@@ -18,7 +18,7 @@
 using namespace std;
 
 
-void copy(Vector<string>& sentence, Queue<string> window) {
+void appendWindow(Vector<string>& sentence, Queue<string> window) {
     while (!window.isEmpty()) {
         string word = window.dequeue();
         sentence.add(word);
@@ -51,12 +51,10 @@ void getNAndFile(ifstream& stream, int& N) {
     }
 }
 
-void update(HashMap<Queue<string>, Vector<string>>& map, Queue<string>& key, string& word) {
+void updateMapWithKeyAndWord(HashMap<Queue<string>, Vector<string>>& map, Queue<string>& key, string& word) {
     Vector<string> value;
     if (map.containsKey(key)) {
         value = map.get(key);
-    } else {
-        value.clear();
     }
     value.add(word);
     map.put(key, value);
@@ -67,24 +65,16 @@ void update(HashMap<Queue<string>, Vector<string>>& map, Queue<string>& key, str
 void buildMap(HashMap<Queue<string>, Vector<string>>& map, ifstream& stream, int N) {
     string word;
     Queue<string> key;
-    Queue<string> head;
-    int cnt = 0;
-    while (stream >> word) {
-        if (cnt < N-1) {
-            key.enqueue(word);
-            cnt += 1;
-        } else {
-            if (cnt == N-1) {
-                head = key;
-            }
-            update(map, key, word);
-            cnt++;
-        }
+    while (key.size() < N-1 && stream >> word) {
+        key.enqueue(word);
     }
-
+    Queue<string> head = key;
+    while (stream >> word) {
+        updateMapWithKeyAndWord(map, key, word);
+    }
     while (!head.isEmpty()) {
         word = head.dequeue();
-        update(map, key, word);
+        updateMapWithKeyAndWord(map, key, word);
     }
 }
 
@@ -93,10 +83,9 @@ void generate(Vector<string>& sentence, int num_words, int N, HashMap<Queue<stri
     int rand = randomInteger(0, map.size()-1);
     Queue<string> window = map.keys()[rand];
 
-    Vector<string> value;
-    copy(sentence, window);
+    appendWindow(sentence, window);
     while (cnt < num_words) {
-        value = map.get(window);
+        Vector<string> value = map.get(window);
         rand = randomInteger(0, value.size()-1);
         string next = value[rand];
         sentence.add(next);
@@ -119,13 +108,11 @@ void generateFullSentence(Vector<string>& sentence, int num_words, int N, HashMa
     }
 
     int cnt = N - 1;
-    Vector<string> value;
-    copy(sentence, window);
-    string next;
+    appendWindow(sentence, window);
     while (true) {
-        value = map.get(window);
+        Vector<string> value = map.get(window);
         rand = randomInteger(0, value.size()-1);
-        next = value[rand];
+        string next = value[rand];
         sentence.add(next);
         if (((next.back() == '.') || (next.back() == '?') || (next.back() == '!')) && (cnt >= num_words)) {
             break;
