@@ -120,7 +120,7 @@ bool Boggle::humanWordSearchHelper(int i, int j, const string& word, int k) {
         int nj = j + d[1];
         if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && !_visited[ni][nj]) {
             if (humanWordSearchHelper(ni, nj, word, k+1)) {
-                _visited[ni][nj] = false;
+                _visited[i][j] = false;
                 return true;
             }
         }
@@ -161,7 +161,7 @@ void Boggle::computerWordSearchHelper(int i, int j, string word) {
     for (const vector<int>& d : direction) {
         int ni = i + d[0];
         int nj = j + d[1];
-        if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && (_visited[ni][nj] == 0)) {
+        if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && (!_visited[ni][nj])) {
             computerWordSearchHelper(ni, nj, newWord);
         }
     }

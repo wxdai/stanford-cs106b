@@ -87,9 +87,10 @@ void playOneGame(Lexicon& dictionary) {
     // computer's turn.
     cout << endl;
     cout << "It's my turn!" << endl;
-    cout << "My words (" << game.computerWordSearch().size() << "): " << game.computerWordSearch() << endl;
+    const Set<string>& computerWords = game.computerWordSearch();
+    cout << "My words (" << computerWords.size() << "): " << computerWords << endl;
     cout << "My score: " << game.getScoreComputer() << endl;
-    for (auto w : game.computerWordSearch()) {
+    for (auto w : computerWords) {
         BoggleGUI::recordWord(w, BoggleGUI::COMPUTER);
     }
     BoggleGUI::setScore(game.getScoreComputer(), BoggleGUI::COMPUTER);
