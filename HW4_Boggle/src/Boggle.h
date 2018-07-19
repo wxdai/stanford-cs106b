@@ -34,14 +34,15 @@ public:
 private:
     string randomInitialize();
     bool isDuplicated(string word);
-    bool humanWordSearchHelper(int i, int j, Grid<int>& visited, string word);
-    void computerWordSearchHelper(int i, int j, Grid<int>& visited, string word);
+    bool humanWordSearchHelper(int i, int j, const string& word, int k);
+    void computerWordSearchHelper(int i, int j, string word);
     Grid<char> _board;
     Lexicon& _dictionary;
     Set<string> _validUserInputs;
     Set<string> _computerWords;
     string _lastUserInput;
     int _humanScore = 0;
+    Grid<bool> _visited;
 };
 
 

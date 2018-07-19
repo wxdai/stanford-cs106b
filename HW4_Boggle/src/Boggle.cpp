@@ -26,13 +26,14 @@ static string BIG_BOGGLE_CUBES[25] = {
    "FIPRSY", "GORRVW", "HIPRRY", "NOOTUW", "OOOTTU"
 };
 
-const int kCubeRow = 4;
-const int kCubeColumn = 4;
-const int kCubeSize = kCubeRow * kCubeColumn;
-const int kNumFaces = 6;
-const vector<vector<int>> direction {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+static int kCubeRow = 4;
+static int kCubeColumn = 4;
+static int kCubeSize = kCubeRow * kCubeColumn;
+static int kNumFaces = 6;
+static vector<vector<int>> direction {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
-Boggle::Boggle(Lexicon& dictionary, string boardText) : _board(kCubeRow, kCubeColumn), _dictionary(dictionary) {
+Boggle::Boggle(Lexicon& dictionary, string boardText) : _board(kCubeRow, kCubeColumn),
+    _dictionary(dictionary),  _visited(kCubeRow, kCubeColumn, false) {
     // use the given 16-letter string to initialize the 16 board cubes from top-left to bottom-right.
     // If the string is empty, generate a random shuffled board.
     if (boardText.empty()) {
@@ -56,15 +57,6 @@ string Boggle::randomInitialize() {
         boardText += CUBES[i][randomInteger(0, kNumFaces-1)];
     }
     return boardText;
-}
-
-char Boggle::getLetter(int row, int col) {
-    // return the character that is stored in Boggle board at the given 0-based row and column.
-    // If the row and/or column are out of bounds, throw an int exception.
-    if ((row >= 0) && (row < kCubeRow) && (col >= 0) && (col < kCubeColumn)) {
-        return _board[row][col];
-    }
-    throw out_of_range("Index out of bound.");
 }
 
 bool Boggle::checkWord(string word) {
@@ -98,32 +90,34 @@ bool Boggle::humanWordSearch(string word) {
     word = toUpperCase(word);
     for (int i = 0; i < kCubeRow; i++) {
         for (int j = 0; j < kCubeColumn; j++) {
-            Grid<int> visited(kCubeRow, kCubeColumn, 0);
-            visited[i][j] = 1;
-            if (humanWordSearchHelper(i, j, visited, word)) {
+            _visited[i][j] = true;
+            if (humanWordSearchHelper(i, j, word, 0)) {
+                _visited[i][j] = false;
                 return true;
             }
+            _visited[i][j] = false;
         }
     }
     return false;
 }
 
-bool Boggle::humanWordSearchHelper(int i, int j, Grid<int>& visited, string word) {
-    if (_board[i][j] != word[0]) {
+bool Boggle::humanWordSearchHelper(int i, int j, const string& word, int k) {
+    if (_board[i][j] != word[k]) {
         return false;
-    } else if (word.length() == 1) {
+    } else if (k == int(word.length()) - 1) {
         return true;
     }
 
     for (const vector<int>& d : direction) {
         int ni = i + d[0];
         int nj = j + d[1];
-        if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && (visited[ni][nj] == 0)) {
-            visited[ni][nj] = 1;
-            if (humanWordSearchHelper(ni, nj, visited, word.substr(1))) {
+        if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && !_visited[ni][nj]) {
+            _visited[ni][nj] = true;
+            if (humanWordSearchHelper(ni, nj, word, k+1)) {
+                _visited[ni][nj] = false;
                 return true;
             }
-            visited[ni][nj] = 0;
+            _visited[ni][nj] = false;
         }
     }
     return false;
@@ -139,15 +133,15 @@ Set<string> Boggle::computerWordSearch() {
     // (that have not already been found by the human player), and return them as a Set of strings.
     for (int i = 0; i < kCubeRow; i++) {
         for (int j = 0; j < kCubeColumn; j++) {
-            Grid<int> visited(kCubeRow, kCubeColumn, 0);
-            visited[i][j] = 1;
-            computerWordSearchHelper(i, j, visited, "");
+            _visited[i][j] = 1;
+            computerWordSearchHelper(i, j, "");
+            _visited[i][j] = 0;
         }
     }
     return _computerWords;
 }
 
-void Boggle::computerWordSearchHelper(int i, int j, Grid<int>& visited, string word) {
+void Boggle::computerWordSearchHelper(int i, int j, string word) {
     string newWord = word + _board[i][j];
     if ((newWord.length() >= 4) && (_dictionary.contains(newWord)) && (!_validUserInputs.contains(newWord))) {
         _computerWords.add(newWord);
@@ -160,10 +154,10 @@ void Boggle::computerWordSearchHelper(int i, int j, Grid<int>& visited, string w
     for (const vector<int>& d : direction) {
         int ni = i + d[0];
         int nj = j + d[1];
-        if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && (visited[ni][nj] == 0)) {
-            visited[ni][nj] = 1;
-            computerWordSearchHelper(ni, nj, visited, newWord);
-            visited[ni][nj] = 0;
+        if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && (_visited[ni][nj] == 0)) {
+            _visited[ni][nj] = 1;
+            computerWordSearchHelper(ni, nj, newWord);
+            _visited[ni][nj] = 0;
         }
     }
 }
