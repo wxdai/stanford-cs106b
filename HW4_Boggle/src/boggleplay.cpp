@@ -9,7 +9,7 @@
 #include "strlib.h"
 #include "Boggle.h"
 #include "console.h"
-
+#include "bogglegui.h"
 using namespace std;
 
 const int kNumSize = 16;
@@ -54,16 +54,22 @@ void playOneGame(Lexicon& dictionary) {
 //        clearConsole();
         if (flag == 0) {
             cout << "It's your turn!" << endl;
+            BoggleGUI::setStatusMessage("It's your turn!");
         } else if (flag == 1) {
             cout << "You must enter an unfound 4+ letter word from the dictionary." << endl;
+            BoggleGUI::setStatusMessage("You must enter an unfound 4+ letter word from the dictionary.");
         } else if (flag == 2) {
             cout << "That word can't be formed on this board." << endl;
+            BoggleGUI::setStatusMessage("That word can't be formed on this board.");
         } else if (flag == 3) {
-            cout << "You found a new word! " << game.getLastUserInput() << endl;
+            cout << "You found a new word!" << game.getLastUserInput() << endl;
+            BoggleGUI::setStatusMessage("You found a new word!");
+            BoggleGUI::recordWord(game.getLastUserInput(), BoggleGUI::HUMAN);
         }
         cout << game << endl;
         cout << "Your words (" << game.getUserInputs().size() << "): " << game.getUserInputs() << endl;
         cout << "Your score: " << game.getScoreHuman() << endl;
+        BoggleGUI::setScore(game.getScoreHuman(), BoggleGUI::HUMAN);
         string userInput = getLine("Type a word (or Enter to stop): ");
         if (userInput == "") {
             break;
@@ -83,10 +89,16 @@ void playOneGame(Lexicon& dictionary) {
     cout << "It's my turn!" << endl;
     cout << "My words (" << game.computerWordSearch().size() << "): " << game.computerWordSearch() << endl;
     cout << "My score: " << game.getScoreComputer() << endl;
+    for (auto w : game.computerWordSearch()) {
+        BoggleGUI::recordWord(w, BoggleGUI::COMPUTER);
+    }
+    BoggleGUI::setScore(game.getScoreComputer(), BoggleGUI::COMPUTER);
 
     if (game.getScoreComputer() > game.getScoreHuman()) {
         cout << "Ha ha ha, I destroyed you. Better luck next time, puny human!" << endl;
+        BoggleGUI::setStatusMessage("Ha ha ha, I destroyed you. Better luck next time, puny human!");
     } else {
         cout << "WOW, you defeated me! Congratulations!" << endl;
+        BoggleGUI::setStatusMessage("WOW, you defeated me! Congratulations!");
     }
 }

@@ -7,6 +7,7 @@
 #include "Boggle.h"
 #include "random.h"
 #include "shuffle.h"
+#include "bogglegui.h"
 #include <stdexcept>
 
 // letters on all 6 sides of every cube
@@ -47,6 +48,9 @@ Boggle::Boggle(Lexicon& dictionary, string boardText) : _board(kCubeRow, kCubeCo
             k++;
         }
     }
+
+    BoggleGUI::labelAllCubes(boardText);
+    BoggleGUI::setAnimationDelay(100);
 }
 
 string Boggle::randomInitialize() {
@@ -87,24 +91,27 @@ bool Boggle::humanWordSearch(string word) {
     // If the word can be formed, you should add it to the human's set of found words.
     // function returns a boolean result of whether the word can be formed.
     // If the word is unsuitable, should not perform the recursive search.
+    BoggleGUI::clearHighlighting();
     word = toUpperCase(word);
     for (int i = 0; i < kCubeRow; i++) {
         for (int j = 0; j < kCubeColumn; j++) {
-            _visited[i][j] = true;
             if (humanWordSearchHelper(i, j, word, 0)) {
-                _visited[i][j] = false;
                 return true;
             }
-            _visited[i][j] = false;
         }
     }
     return false;
 }
 
 bool Boggle::humanWordSearchHelper(int i, int j, const string& word, int k) {
+    BoggleGUI::setHighlighted(i, j, true);
+    _visited[i][j] = true;
     if (_board[i][j] != word[k]) {
+        BoggleGUI::setHighlighted(i, j, false);
+        _visited[i][j] = false;
         return false;
     } else if (k == int(word.length()) - 1) {
+        _visited[i][j] = false;
         return true;
     }
 
@@ -112,14 +119,14 @@ bool Boggle::humanWordSearchHelper(int i, int j, const string& word, int k) {
         int ni = i + d[0];
         int nj = j + d[1];
         if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && !_visited[ni][nj]) {
-            _visited[ni][nj] = true;
             if (humanWordSearchHelper(ni, nj, word, k+1)) {
                 _visited[ni][nj] = false;
                 return true;
             }
-            _visited[ni][nj] = false;
         }
     }
+    BoggleGUI::setHighlighted(i, j, false);
+    _visited[i][j] = false;
     return false;
 }
 
@@ -133,21 +140,21 @@ Set<string> Boggle::computerWordSearch() {
     // (that have not already been found by the human player), and return them as a Set of strings.
     for (int i = 0; i < kCubeRow; i++) {
         for (int j = 0; j < kCubeColumn; j++) {
-            _visited[i][j] = 1;
             computerWordSearchHelper(i, j, "");
-            _visited[i][j] = 0;
         }
     }
     return _computerWords;
 }
 
 void Boggle::computerWordSearchHelper(int i, int j, string word) {
+    _visited[i][j] = true;
     string newWord = word + _board[i][j];
     if ((newWord.length() >= 4) && (_dictionary.contains(newWord)) && (!_validUserInputs.contains(newWord))) {
         _computerWords.add(newWord);
     }
 
     if (!_dictionary.containsPrefix(newWord)) {
+        _visited[i][j] = false;
         return;
     }
 
@@ -155,11 +162,10 @@ void Boggle::computerWordSearchHelper(int i, int j, string word) {
         int ni = i + d[0];
         int nj = j + d[1];
         if ((ni >= 0) && (ni < kCubeRow) && (nj >= 0) && (nj < kCubeColumn) && (_visited[ni][nj] == 0)) {
-            _visited[ni][nj] = 1;
             computerWordSearchHelper(ni, nj, newWord);
-            _visited[ni][nj] = 0;
         }
     }
+    _visited[i][j] = false;
 }
 
 

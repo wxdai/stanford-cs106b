@@ -28,6 +28,8 @@
 using namespace std;
 
 static const string DICTIONARY_FILE = "dictionary.txt";
+static const int kCubeRow = 4;
+static const int kCubeColumn = 4;
 
 // function prototype declarations
 void playOneGame(Lexicon& dictionary);   // written by you, in boggleplay.cpp
@@ -41,10 +43,16 @@ int main() {
     cout << "If only YOU had a gig of RAM!" << endl;
     cout << endl;
     Lexicon dictionary(DICTIONARY_FILE);
-    getLine("Press Enter to begin the game ... ");
+    getLine("Press Enter to begin the game ... ");  
 
     // play games repeatedly until user decides to quit
     while (true) {
+        if (!BoggleGUI::isInitialized()) {
+            BoggleGUI::initialize(kCubeRow, kCubeColumn);
+        } else {
+            BoggleGUI::reset();
+            BoggleGUI::setStatusMessage("");
+        }
         playOneGame(dictionary);   // your function
         cout << endl;
         if (!getYesOrNo("Play again (Y/N)? ")) {
